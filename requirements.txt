@@ -4,3 +4,5 @@ numpy
 pandas
 plotly
 xlrd
+statsmodels
+scikit-learn
