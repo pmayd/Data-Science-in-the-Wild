@@ -2,27 +2,33 @@ from collections import defaultdict
 from typing import Union, List
 
 import pandas as pd
-import xlrd
+import openpyxl
 
-header_rows = range(6,10)
+HEADER_ROWS = range(4,8)
+DIMENSIONS_SHEET_NAME = "Structure"
+DIMENSIONS_CELL_RANGE = "B4:E1000"
+DIMENSIONS_FIRST_ROW = 3
+DIMENSIONS_COL_CAT = 0
+DIMENSIONS_COL_CODE = 2
+DIMENSIONS_COL_LABEL = 3
 
 
 def get_header_codes_from_excel(excel_file: str):
-    book = xlrd.open_workbook(excel_file, on_demand=True)
-    header_rows = range(6,10)
+    book = openpyxl.load_workbook(excel_file, data_only=True)
+    
+    codes = defaultdict(dict)
+    sheet = book[DIMENSIONS_SHEET_NAME]
+    cells = sheet[DIMENSIONS_CELL_RANGE]
+    
+    for row in cells:
+        cat = row[DIMENSIONS_COL_CAT].value
+        code = row[DIMENSIONS_COL_CODE].value
+        label = row[DIMENSIONS_COL_LABEL].value
+        if not cat:
+            break
 
-    header = defaultdict(set)
-    for sheet in book.sheet_names():
-        sh = book.sheet_by_name(sheet)
+        codes[cat][code] = label
 
-        for row in header_rows:
-            label, value = sh.cell_value(row, 0), sh.cell_value(row, 1)
-            if not label:
-                break
-
-            header[label].add(value)
-
-    codes = {k: {s.split(" - ")[0]: s.split(" - ", 1)[1] for s in v} for k,v in header.items()}
     return codes
 
 
